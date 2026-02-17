@@ -1,0 +1,46 @@
+import { Link } from 'react-router-dom'
+import { useFavorites } from '../../context/FavoritesContext.jsx'
+import { useAuth } from '../../context/AuthContext.jsx'
+import './ProductCard.css'
+
+export default function ProductCard({ product }) {
+  const { toggleFavorite, isFavorite } = useFavorites()
+  const { isAuthenticated } = useAuth()
+  const fav = isFavorite(product.id)
+
+  return (
+    <article className="product-card">
+      <div className="product-card__image-wrapper">
+        <img
+          className="product-card__image"
+          src={product.image}
+          alt={product.name}
+          crossOrigin="anonymous"
+          loading="lazy"
+        />
+        {isAuthenticated && (
+          <button
+            className={`product-card__fav-btn${fav ? ' product-card__fav-btn--active' : ''}`}
+            onClick={() => toggleFavorite(product.id)}
+            aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {fav ? '\u2665' : '\u2661'}
+          </button>
+        )}
+        {!product.inStock && (
+          <span className="product-card__stock-badge product-card__stock-badge--out">
+            OUT OF STOCK
+          </span>
+        )}
+      </div>
+      <div className="product-card__body">
+        <span className="product-card__category">{product.category}</span>
+        <h3 className="product-card__name">{product.name}</h3>
+        <div className="product-card__price">{'$'}{product.price.toLocaleString()}</div>
+        <Link to={`/product/${product.id}`} className="product-card__link">
+          VIEW DETAILS
+        </Link>
+      </div>
+    </article>
+  )
+}
