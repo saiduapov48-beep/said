@@ -74,7 +74,6 @@
   transition: border-color var(--transition-base);
   border-radius: 0;
   -webkit-appearance: none;
-  appearance: none;
 }
 
 .modal__input:focus,
