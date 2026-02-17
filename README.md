@@ -1,3 +1,8 @@
+Я проект сделал не добавив в  гит потому что у меня ничего не добавлялось и коммитилось
+Добавление: Я добавляю и переделываю в файлах код.
+
+
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
