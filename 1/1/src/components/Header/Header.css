@@ -17,11 +17,20 @@
 }
 
 .header__logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: var(--letter-spacing-wider);
   text-transform: uppercase;
   color: var(--color-black);
+}
+
+.header__logo-icon {
+  height: 64px;
+  width: 64px;
+  flex-shrink: 0;
 }
 
 .header__logo span {

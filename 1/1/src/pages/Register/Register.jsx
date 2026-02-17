@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
+import fafacon from '../../assets/fafacon.svg'
 import '../Login/Login.css'
 
 export default function Register() {
@@ -47,6 +48,9 @@ export default function Register() {
   return (
     <div className="auth-page">
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        <div className="auth-form__logo">
+          <img src={fafacon} alt="logo" className="auth-logo-icon" />
+        </div>
         <div className="auth-form__header">
           <h1 className="auth-form__title">REGISTER</h1>
           <p className="auth-form__subtitle">Create your account</p>

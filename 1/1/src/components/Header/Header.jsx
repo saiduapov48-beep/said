@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useFavorites } from '../../context/FavoritesContext.jsx'
+import fafacon from '../../assets/fafacon.svg'
 import './Header.css'
 
 export default function Header() {
@@ -30,6 +31,7 @@ export default function Header() {
     <header className="header" role="banner">
       <div className="header__inner">
         <Link to="/" className="header__logo">
+          <img src={fafacon} alt="logo" className="header__logo-icon" />
           MAISON<span>APPLE</span>
         </Link>
 

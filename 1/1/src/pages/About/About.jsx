@@ -1,8 +1,12 @@
+import fafacon from '../../assets/fafacon.svg'
 import './About.css'
 
 export default function About() {
   return (
     <div className="about">
+      <div className="about__logo">
+        <img src={fafacon} alt="logo" className="about-logo-icon" />
+      </div>
       <section className="about__hero">
         <div className="about__label">OUR PHILOSOPHY</div>
         <h1 className="about__title">WHERE TECHNOLOGY MEETS RESTRAINT</h1>

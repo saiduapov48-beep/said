@@ -3,6 +3,17 @@
   margin: 0 auto;
 }
 
+.about__logo {
+  display: flex;
+  justify-content: center;
+  padding: 60px 40px 40px;
+}
+
+.about-logo-icon {
+  height: 100px;
+  width: 100px;
+}
+
 .about__hero {
   padding: 100px 40px;
   text-align: center;

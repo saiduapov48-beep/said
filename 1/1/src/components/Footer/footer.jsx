@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import fafacon from '../../assets/fafacon.svg'
 import './Footer.css'
 
 export default function Footer() {
@@ -7,7 +8,10 @@ export default function Footer() {
       <div className="footer__inner">
         <div className="footer__grid">
           <div>
-            <div className="footer__brand-name">MAISON APPLE</div>
+            <div className="footer__logo-brand">
+              <img src={fafacon} alt="logo" className="footer__logo-icon" />
+              <div className="footer__brand-name">MAISON APPLE</div>
+            </div>
             <p className="footer__brand-desc">
               Premium reservation platform for Apple devices.
               Curated selection. Minimal aesthetic. Maximum precision.
