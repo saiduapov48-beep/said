@@ -1,12 +1,26 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import products from '../../data/products.js'
 import { useFavorites } from '../../context/FavoritesContext.jsx'
 import ProductCard from '../../components/ProductCard/ProductCard.jsx'
 import './Favorites.css'
 
+const API = 'http://localhost:5000/api/products'
+
 export default function Favorites() {
   const { favorites } = useFavorites()
-  const favProducts = products.filter((p) => favorites.includes(p.id))
+  const [favProducts, setFavProducts] = useState([])
+
+  useEffect(() => {
+    if (favorites.length === 0) {
+      setFavProducts([])
+      return
+    }
+    // Грузим все продукты и фильтруем по избранному
+    fetch(API)
+      .then(r => r.json())
+      .then(all => setFavProducts(all.filter(p => favorites.includes(p._id))))
+      .catch(() => setFavProducts([]))
+  }, [favorites])
 
   return (
     <div className="favorites">
@@ -18,7 +32,7 @@ export default function Favorites() {
       {favProducts.length > 0 ? (
         <div className="favorites__grid">
           {favProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       ) : (

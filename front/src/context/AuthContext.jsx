@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext(null)
+const API = 'http://localhost:5000/api/auth'
 
 export function useAuth() {
   const ctx = useContext(AuthContext)
@@ -12,71 +13,110 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
+
   useEffect(() => {
-    const saved = localStorage.getItem('maison_session')
-    if (saved) {
-      try {
-        setUser(JSON.parse(saved))
-      } catch {
-        localStorage.removeItem('maison_session')
-      }
+    const token = localStorage.getItem('maison_token')
+    if (!token) {
+      setIsLoading(false)
+      return
     }
-    setIsLoading(false)
+    fetch(`${API}/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) setUser({ id: data._id, name: data.name, email: data.email, role: data.role })
+        else localStorage.removeItem('maison_token')
+      })
+      .catch(() => localStorage.removeItem('maison_token'))
+      .finally(() => setIsLoading(false))
   }, [])
 
-  function register(name, email, password) {
-    const users = JSON.parse(localStorage.getItem('maison_users') || '[]')
-    const exists = users.find((u) => u.email === email)
-    if (exists) {
-      return { success: false, error: 'User with this email already exists' }
-    }
-    const newUser = {
-      id: Date.now(),
-      name,
-      email,
-      password,
-      role: email === 'admin@maison.com' ? 'admin' : 'user',
-      createdAt: new Date().toISOString()
-    }
-    users.push(newUser)
-    localStorage.setItem('maison_users', JSON.stringify(users))
+  async function register(name, email, password) {
+    try {
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      })
+      const data = await res.json()
+      if (!res.ok) return { success: false, error: data.message }
 
-    const session = { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role, createdAt: newUser.createdAt }
-    localStorage.setItem('maison_session', JSON.stringify(session))
-    setUser(session)
-    return { success: true }
+      localStorage.setItem('maison_token', data.token)
+      setUser(data.user)
+      return { success: true }
+    } catch {
+      return { success: false, error: 'Server error' }
+    }
   }
 
-  function login(email, password) {
-    const users = JSON.parse(localStorage.getItem('maison_users') || '[]')
-    const found = users.find((u) => u.email === email && u.password === password)
-    if (!found) {
-      return { success: false, error: 'Invalid email or password' }
+  async function login(email, password) {
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      const data = await res.json()
+      if (!res.ok) return { success: false, error: data.message }
+
+      localStorage.setItem('maison_token', data.token)
+      setUser(data.user)
+      return { success: true }
+    } catch {
+      return { success: false, error: 'Server error' }
     }
-    const session = { id: found.id, name: found.name, email: found.email, role: found.role, createdAt: found.createdAt }
-    localStorage.setItem('maison_session', JSON.stringify(session))
-    setUser(session)
-    return { success: true }
   }
 
   function logout() {
-    localStorage.removeItem('maison_session')
+    localStorage.removeItem('maison_token')
     setUser(null)
   }
 
-  function updateProfile(updates) {
-    const users = JSON.parse(localStorage.getItem('maison_users') || '[]')
-    const idx = users.findIndex((u) => u.id === user.id)
-    if (idx !== -1) {
-      users[idx] = { ...users[idx], ...updates }
-      localStorage.setItem('maison_users', JSON.stringify(users))
+  async function updateProfile(updates) {
+    try {
+      const token = localStorage.getItem('maison_token')
+      const res = await fetch(`${API}/me`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(updates)
+      })
+      const data = await res.json()
+      if (!res.ok) return { success: false, error: data.message }
+
+      setUser(prev => ({ ...prev, ...updates }))
+      return { success: true }
+    } catch {
+      return { success: false, error: 'Server error' }
     }
-    const newSession = { ...user, ...updates }
-    localStorage.setItem('maison_session', JSON.stringify(newSession))
-    setUser(newSession)
   }
 
-  const value = { user, isLoading, register, login, logout, updateProfile, isAuthenticated: !!user }
+
+  function authFetch(url, options = {}) {
+    const token = localStorage.getItem('maison_token')
+    return fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        ...options.headers
+      }
+    })
+  }
+
+  const value = {
+    user,
+    isLoading,
+    register,
+    login,
+    logout,
+    updateProfile,
+    authFetch,
+    isAuthenticated: !!user
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

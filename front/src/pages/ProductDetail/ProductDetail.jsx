@@ -1,19 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import products from '../../data/products.js'
 import { useFavorites } from '../../context/FavoritesContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import BookingModal from '../../components/BookingModal/BookingModal.jsx'
 import './ProductDetail.css'
 
+const API = 'http://localhost:5000/api/products'
+
 export default function ProductDetail() {
   const { id } = useParams()
-  const product = products.find((p) => p.id === Number(id))
+  const [product, setProduct] = useState(null)
+  const [notFound, setNotFound] = useState(false)
   const { toggleFavorite, isFavorite } = useFavorites()
   const { isAuthenticated } = useAuth()
   const [modalOpen, setModalOpen] = useState(false)
 
-  if (!product) {
+  useEffect(() => {
+    fetch(`${API}/${id}`)
+      .then(r => {
+        if (!r.ok) throw new Error('Not found')
+        return r.json()
+      })
+      .then(data => setProduct(data))
+      .catch(() => setNotFound(true))
+  }, [id])
+
+  if (notFound) {
     return (
       <div className="detail__not-found">
         <h2>DEVICE NOT FOUND</h2>
@@ -25,7 +37,11 @@ export default function ProductDetail() {
     )
   }
 
-  const fav = isFavorite(product.id)
+  if (!product) {
+    return <div className="detail__not-found">LOADING...</div>
+  }
+
+  const fav = isFavorite(product._id)
 
   return (
     <div className="detail">
@@ -58,7 +74,7 @@ export default function ProductDetail() {
 
           <div className="detail__specs">
             <div className="detail__specs-title">SPECIFICATIONS</div>
-            {product.specs.map((spec, i) => (
+            {product.specs?.map((spec, i) => (
               <div key={i} className="detail__spec-item">{spec}</div>
             ))}
           </div>
@@ -74,7 +90,7 @@ export default function ProductDetail() {
             {isAuthenticated && (
               <button
                 className="detail__btn detail__btn--secondary"
-                onClick={() => toggleFavorite(product.id)}
+                onClick={() => toggleFavorite(product._id)}
               >
                 {fav ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES'}
               </button>

@@ -1,9 +1,20 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import products from '../../data/products.js'
 import ProductCard from '../../components/ProductCard/ProductCard.jsx'
 import './Home.css'
 
+const API = 'http://localhost:5000/api/products'
+
 export default function Home() {
+  const [products, setProducts] = useState([])
+
+  useEffect(() => {
+    fetch(API)
+      .then(r => r.json())
+      .then(data => setProducts(data))
+      .catch(() => setProducts([]))
+  }, [])
+
   const featured = products.filter((p) => p.inStock).slice(0, 4)
 
   return (
@@ -28,7 +39,7 @@ export default function Home() {
         </div>
         <div className="featured__grid">
           {featured.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       </section>

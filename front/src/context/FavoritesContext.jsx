@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { useAuth } from './AuthContext'
 
 const FavoritesContext = createContext(null)
+const API = 'http://localhost:5000/api/auth'
 
 export function useFavorites() {
   const ctx = useContext(FavoritesContext)
@@ -9,21 +11,44 @@ export function useFavorites() {
 }
 
 export function FavoritesProvider({ children }) {
-  const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('maison_favorites')
-    return saved ? JSON.parse(saved) : []
-  })
+  const { user, authFetch } = useAuth()
+  const [favorites, setFavorites] = useState([])
+
 
   useEffect(() => {
-    localStorage.setItem('maison_favorites', JSON.stringify(favorites))
-  }, [favorites])
+    if (!user) {
+      setFavorites([])
+      return
+    }
+    authFetch(`${API}/me`)
+      .then(r => r.json())
+      .then(data => setFavorites(data.favorites || []))
+      .catch(() => setFavorites([]))
+  }, [user])
 
-  function toggleFavorite(productId) {
-    setFavorites((prev) =>
+  async function toggleFavorite(productId) {
+    if (!user) return
+
+
+    setFavorites(prev =>
       prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
+        ? prev.filter(id => id !== productId)
         : [...prev, productId]
     )
+
+    try {
+      const res = await authFetch(`${API}/favorites/${productId}`, { method: 'POST' })
+      const data = await res.json()
+
+      setFavorites(data.favorites || [])
+    } catch {
+
+      setFavorites(prev =>
+        prev.includes(productId)
+          ? prev.filter(id => id !== productId)
+          : [...prev, productId]
+      )
+    }
   }
 
   function isFavorite(productId) {
