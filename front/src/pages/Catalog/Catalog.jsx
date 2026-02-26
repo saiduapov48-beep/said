@@ -1,12 +1,19 @@
 import { useSearchParams } from 'react-router-dom'
-import { useEffect } from 'react'
-import products from '../../data/products.js'
+import { useEffect, useState } from 'react'
 import useSearch from '../../hooks/useSearch.js'
 import ProductCard from '../../components/ProductCard/ProductCard.jsx'
 import './Catalog.css'
 
 export default function Catalog() {
   const [searchParams] = useSearchParams()
+  const [products, setProducts] = useState([])
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/products')
+      .then(r => r.json())
+      .then(data => setProducts(data))
+  }, [])
+
   const {
     query, setQuery,
     category, setCategory,
@@ -75,7 +82,7 @@ export default function Catalog() {
       <div className="catalog__grid">
         {filtered.length > 0 ? (
           filtered.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product._id} product={product} />
           ))
         ) : (
           <div className="catalog__empty">
