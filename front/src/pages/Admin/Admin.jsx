@@ -10,17 +10,17 @@ const PICKUP_STATUSES = ['pending', 'confirmed', 'ready', 'completed', 'cancelle
 const ALL_STATUSES = ['pending', 'confirmed', 'ready', 'shipped', 'delivered', 'completed', 'cancelled']
 
 const STATUS_COLORS = {
-  pending: '#f59e0b',
-  confirmed: '#3b82f6',
-  ready: '#8b5cf6',
-  shipped: '#06b6d4',
-  delivered: '#10b981',
-  completed: '#10b981',
-  cancelled: '#ef4444'
+  pending: '#d4a574',
+  confirmed: '#7a9d84',
+  ready: '#7a9d84',
+  shipped: '#9d8f7a',
+  delivered: '#7a9d84',
+  completed: '#7a9d84',
+  cancelled: '#c67c7c'
 }
 
 export default function Admin() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, logout } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,7 +29,10 @@ export default function Admin() {
   const [lookupError, setLookupError] = useState('')
   const [filter, setFilter] = useState('all')
   const [activeTab, setActiveTab] = useState('orders')
+  const [activeSection, setActiveSection] = useState('orders')
   const [stats, setStats] = useState({ total: 0, pending: 0, pickup: 0, shipping: 0, revenue: 0 })
+  const [deliveredCheckbox, setDeliveredCheckbox] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     if (isLoading) return
@@ -70,6 +73,7 @@ export default function Admin() {
   async function handleLookup() {
     setLookupError('')
     setLookupResult(null)
+    setDeliveredCheckbox(false)
     if (!lookupQuery.trim()) return
     const token = localStorage.getItem('maison_token')
     const res = await fetch(`${API}/orders/admin/lookup?query=${encodeURIComponent(lookupQuery)}`, {
@@ -80,56 +84,80 @@ export default function Admin() {
     setLookupResult(data)
   }
 
+  async function handleDeliveryCheckbox(checked) {
+    setDeliveredCheckbox(checked)
+    if (checked && lookupResult) {
+      await changeStatus(lookupResult._id, 'completed')
+      setLookupResult(null)
+      setLookupQuery('')
+      setDeliveredCheckbox(false)
+      loadOrders()
+    }
+  }
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
+
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  const searchFiltered = searchQuery.trim() 
+    ? filtered.filter(o => 
+        o.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        o.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        o._id?.includes(searchQuery)
+      )
+    : filtered
   const pickupOrders = orders.filter(o => o.deliveryType === 'pickup' && !['completed', 'cancelled'].includes(o.status))
 
   return (
-    <div className="admin">
+    <article className="admin">
       {/* HEADER */}
-      <div className="admin__header">
-        <div>
+      <header className="admin__header">
+        <div className="admin__header-content">
           <h1 className="admin__title">ADMIN PANEL</h1>
           <p className="admin__subtitle">Maison Apple — Order Management</p>
         </div>
-      </div>
+        <button className="admin__logout-btn" onClick={handleLogout}>Logout</button>
+      </header>
 
       {/* STATS */}
-      <div className="admin__stats">
+      <section className="admin__stats" aria-label="Order Statistics">
         <div className="admin__stat">
           <div className="admin__stat-value">{stats.total}</div>
           <div className="admin__stat-label">TOTAL ORDERS</div>
         </div>
         <div className="admin__stat">
-          <div className="admin__stat-value" style={{ color: '#f59e0b' }}>{stats.pending}</div>
+          <div className="admin__stat-value" style={{ color: '#d4a574' }}>{stats.pending}</div>
           <div className="admin__stat-label">PENDING</div>
         </div>
         <div className="admin__stat">
-          <div className="admin__stat-value" style={{ color: '#4af' }}>{stats.pickup}</div>
+          <div className="admin__stat-value" style={{ color: '#d4a574' }}>{stats.pickup}</div>
           <div className="admin__stat-label">PICKUP</div>
         </div>
         <div className="admin__stat">
-          <div className="admin__stat-value" style={{ color: '#fa4' }}>{stats.shipping}</div>
+          <div className="admin__stat-value" style={{ color: '#d4a574' }}>{stats.shipping}</div>
           <div className="admin__stat-label">SHIPPING</div>
         </div>
         <div className="admin__stat">
-          <div className="admin__stat-value" style={{ color: '#10b981' }}>${stats.revenue.toLocaleString()}</div>
+          <div className="admin__stat-value" style={{ color: '#d4a574' }}>${stats.revenue.toLocaleString()}</div>
           <div className="admin__stat-label">REVENUE</div>
         </div>
-      </div>
+      </section>
 
       {/* TABS */}
-      <div className="admin__tabs">
+      <nav className="admin__tabs" aria-label="Admin Sections">
         <button className={`admin__tab${activeTab === 'orders' ? ' admin__tab--active' : ''}`} onClick={() => setActiveTab('orders')}>
           ALL ORDERS ({orders.length})
         </button>
         <button className={`admin__tab${activeTab === 'pickup' ? ' admin__tab--active' : ''}`} onClick={() => setActiveTab('pickup')}>
            PICKUP IN STORE ({pickupOrders.length})
         </button>
-      </div>
+      </nav>
 
       {/* PICKUP TAB */}
       {activeTab === 'pickup' && (
-        <div className="admin__pickup">
+        <section className="admin__pickup" aria-label="Pickup Orders Management">
           <div className="admin__lookup">
             <h2 className="admin__lookup-title">CUSTOMER IDENTIFICATION</h2>
             <p className="admin__lookup-desc">Enter customer email or order ID to verify and complete pickup</p>
@@ -140,18 +168,19 @@ export default function Admin() {
                 value={lookupQuery}
                 onChange={e => setLookupQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleLookup()}
+                aria-label="Search for customer order"
               />
               <button className="admin__lookup-btn" onClick={handleLookup}>FIND ORDER</button>
             </div>
-            {lookupError && <div className="admin__lookup-error">{lookupError}</div>}
+            {lookupError && <div className="admin__lookup-error" role="alert">{lookupError}</div>}
             {lookupResult && (
-              <div className="admin__lookup-result">
-                <div className="admin__lookup-result-header">
+              <article className="admin__lookup-result">
+                <header className="admin__lookup-result-header">
                   <span>ORDER #{lookupResult._id.slice(-6).toUpperCase()}</span>
                   <span className="admin__status-badge" style={{ background: STATUS_COLORS[lookupResult.status] }}>
                     {lookupResult.status.toUpperCase()}
                   </span>
-                </div>
+                </header>
                 <div className="admin__lookup-grid">
                   <div><span className="admin__lookup-key">Customer</span><span>{lookupResult.user?.name}</span></div>
                   <div><span className="admin__lookup-key">Email</span><span>{lookupResult.user?.email}</span></div>
@@ -161,17 +190,19 @@ export default function Admin() {
                   <div><span className="admin__lookup-key">Total</span><span>${lookupResult.total?.toLocaleString()}</span></div>
                 </div>
                 {lookupResult.status !== 'completed' && lookupResult.status !== 'cancelled' && (
-                  <button
-                    className="admin__complete-btn"
-                    onClick={() => { changeStatus(lookupResult._id, 'completed'); setLookupResult({ ...lookupResult, status: 'completed' }) }}
-                  >
-                    ✓ COMPLETE PICKUP — HAND OVER TO CUSTOMER
-                  </button>
+                  <label className="admin__lookup-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={deliveredCheckbox}
+                      onChange={(e) => handleDeliveryCheckbox(e.target.checked)}
+                    />
+                    <label>Mark as delivered & remove</label>
+                  </label>
                 )}
                 {lookupResult.status === 'completed' && (
                   <div className="admin__completed-msg">✓ ORDER COMPLETED — HANDED OVER</div>
                 )}
-              </div>
+              </article>
             )}
           </div>
 
@@ -180,39 +211,42 @@ export default function Admin() {
           {pickupOrders.length === 0 ? (
             <div className="admin__empty">NO PENDING PICKUPS</div>
           ) : (
-            pickupOrders.map(order => (
-              <div key={order._id} className="admin__order-card">
-                <div className="admin__order-top">
-                  <div>
-                    <span className="admin__order-id">#{order._id.slice(-6).toUpperCase()}</span>
-                    <span className="admin__order-date">{new Date(order.createdAt).toLocaleString()}</span>
-                  </div>
-                  <span className="admin__status-badge" style={{ background: STATUS_COLORS[order.status] }}>
-                    {order.status.toUpperCase()}
-                  </span>
-                </div>
-                <div className="admin__order-customer">{order.user?.name} · {order.user?.email}</div>
-                <div className="admin__order-store"> {order.pickup?.storeName} — {order.pickup?.storeAddress}</div>
-                <div className="admin__order-items">{order.items?.map(i => `${i.product?.name} ×${i.quantity}`).join(', ')}</div>
-                <div className="admin__order-total">${order.total?.toLocaleString()}</div>
-                <select
-                  className="admin__status-select"
-                  value={order.status}
-                  onChange={e => changeStatus(order._id, e.target.value)}
-                >
-                  {PICKUP_STATUSES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
-                </select>
-              </div>
-            ))
+            <div>
+              {pickupOrders.map(order => (
+                <article key={order._id} className="admin__order-card">
+                  <header className="admin__order-top">
+                    <div>
+                      <span className="admin__order-id">#{order._id.slice(-6).toUpperCase()}</span>
+                      <span className="admin__order-date">{new Date(order.createdAt).toLocaleString()}</span>
+                    </div>
+                    <span className="admin__status-badge" style={{ background: STATUS_COLORS[order.status] }}>
+                      {order.status.toUpperCase()}
+                    </span>
+                  </header>
+                  <div className="admin__order-customer">{order.user?.name} · {order.user?.email}</div>
+                  <div className="admin__order-store"> {order.pickup?.storeName} — {order.pickup?.storeAddress}</div>
+                  <div className="admin__order-items">{order.items?.map(i => `${i.product?.name} ×${i.quantity}`).join(', ')}</div>
+                  <div className="admin__order-total">${order.total?.toLocaleString()}</div>
+                  <select
+                    className="admin__status-select"
+                    value={order.status}
+                    onChange={e => changeStatus(order._id, e.target.value)}
+                    aria-label="Change order status"
+                  >
+                    {PICKUP_STATUSES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+                  </select>
+                </article>
+              ))}
+            </div>
           )}
-        </div>
+        </section>
       )}
 
       {/* ORDERS TAB */}
       {activeTab === 'orders' && (
-        <div>
+        <section className="admin__orders" aria-label="All Orders Management">
           {/* FILTER */}
-          <div className="admin__filters">
+          <nav className="admin__filters" aria-label="Order Filters">
             <button className={`admin__filter-btn${filter === 'all' ? ' admin__filter-btn--active' : ''}`} onClick={() => setFilter('all')}>
               ALL ({orders.length})
             </button>
@@ -221,18 +255,18 @@ export default function Admin() {
                 key={s}
                 className={`admin__filter-btn${filter === s ? ' admin__filter-btn--active' : ''}`}
                 onClick={() => setFilter(s)}
-                style={{ borderColor: STATUS_COLORS[s] }}
+                aria-pressed={filter === s}
               >
-                <span style={{ color: STATUS_COLORS[s] }}>●</span> {s.toUpperCase()} ({orders.filter(o => o.status === s).length})
+                <span style={{ color: '#d4a574' }}>●</span> {s.toUpperCase()} ({orders.filter(o => o.status === s).length})
               </button>
             ))}
-          </div>
+          </nav>
 
           {loading ? <div className="admin__loading">LOADING...</div> : (
             <div>
               {filtered.map(order => (
-                <div key={order._id} className="admin__order-card">
-                  <div className="admin__order-top">
+                <article key={order._id} className="admin__order-card">
+                  <header className="admin__order-top">
                     <div>
                       <span className="admin__order-id">#{order._id.slice(-6).toUpperCase()}</span>
                       <span className="admin__order-date">{new Date(order.createdAt).toLocaleString()}</span>
@@ -245,7 +279,7 @@ export default function Admin() {
                         {order.status.toUpperCase()}
                       </span>
                     </div>
-                  </div>
+                  </header>
                   <div className="admin__order-customer">{order.user?.name} · {order.user?.email}</div>
                   <div className="admin__order-store">
                     {order.deliveryType === 'pickup'
@@ -259,18 +293,19 @@ export default function Admin() {
                     className="admin__status-select"
                     value={order.status}
                     onChange={e => changeStatus(order._id, e.target.value)}
+                    aria-label="Change order status"
                   >
                     {(order.deliveryType === 'pickup' ? PICKUP_STATUSES : SHIPPING_STATUSES).map(s => (
                       <option key={s} value={s}>{s.toUpperCase()}</option>
                     ))}
                   </select>
-                </div>
+                </article>
               ))}
               {filtered.length === 0 && <div className="admin__empty">NO ORDERS</div>}
             </div>
           )}
-        </div>
+        </section>
       )}
-    </div>
+    </article>
   )
 }

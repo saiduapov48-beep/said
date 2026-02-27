@@ -1,17 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import fafacon from '../../assets/fafacon.svg'
 import './Login.css'
 
 export default function Login() {
-  const { login } = useAuth()
+  const { login, user } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/profile')
+      }
+    }
+  }, [user, navigate])
 
   function validate() {
     const errs = {}
@@ -32,7 +42,7 @@ export default function Login() {
     const result = await login(email, password)
     setIsLoading(false)
     if (result.success) {
-      navigate('/profile')
+      // redirect is handled by useEffect watching user state
     } else {
       setGlobalError(result.error)
     }

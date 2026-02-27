@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import fafacon from '../../assets/fafacon.svg'
 import '../Login/Login.css'
 
 export default function Register() {
-  const { register } = useAuth()
+  const { register, user } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -14,6 +14,16 @@ export default function Register() {
   const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/profile')
+      }
+    }
+  }, [user, navigate])
 
   function validate() {
     const errs = {}
@@ -38,7 +48,7 @@ export default function Register() {
     const result = await register(name, email, password)
     setIsLoading(false)
     if (result.success) {
-      navigate('/profile')
+      // redirect is handled by useEffect watching user state
     } else {
       setGlobalError(result.error)
     }

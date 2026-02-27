@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout.jsx'
+import AdminLayout from './layouts/AdminLayout.jsx'
 import PrivateRoute from './components/PrivateRoute/PrivateRoute.jsx'
 import Home from './pages/Home/Home.jsx'
 import Catalog from './pages/Catalog/Catalog.jsx'
@@ -17,6 +18,16 @@ import Admin from './pages/Admin/Admin.jsx'
 export default function App() {
   return (
     <Routes>
+      <Route element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <Admin />
+            </PrivateRoute>
+          }
+        />
+      </Route>
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/catalog" element={<Catalog />} />
@@ -24,15 +35,6 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<About />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route
-         path="/admin"
-          element={
-            <PrivateRoute>
-              <Admin />
-            </PrivateRoute>
-          }
-        />
         <Route
           path="/profile"
           element={
