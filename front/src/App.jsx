@@ -9,6 +9,9 @@ import Register from './pages/Register/Register.jsx'
 import Profile from './pages/Profile/Profile.jsx'
 import About from './pages/About/About.jsx'
 import Favorites from './pages/Favorites/Favorites.jsx'
+import Cart from './pages/Cart/Cart.jsx'
+import Checkout from './pages/Checkout/Checkout.jsx'
+
 
 export default function App() {
   return (
@@ -33,6 +36,22 @@ export default function App() {
           element={
             <PrivateRoute>
               <Favorites />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <PrivateRoute>
+              <Cart />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <PrivateRoute>
+              <Checkout />
             </PrivateRoute>
           }
         />

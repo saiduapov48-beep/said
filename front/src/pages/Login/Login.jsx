@@ -11,6 +11,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   function validate() {
     const errs = {}
@@ -19,7 +20,7 @@ export default function Login() {
     return errs
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setGlobalError('')
     const errs = validate()
@@ -27,7 +28,9 @@ export default function Login() {
       setErrors(errs)
       return
     }
-    const result = login(email, password)
+    setIsLoading(true)
+    const result = await login(email, password)
+    setIsLoading(false)
     if (result.success) {
       navigate('/profile')
     } else {
@@ -71,11 +74,13 @@ export default function Login() {
             />
             {errors.password && <div className="auth-form__error">{errors.password}</div>}
           </div>
-          <button type="submit" className="auth-form__submit">SIGN IN</button>
+          <button type="submit" className="auth-form__submit" disabled={isLoading}>
+            {isLoading ? 'SIGNING IN...' : 'SIGN IN'}
+          </button>
         </div>
         <div className="auth-form__footer">
           <span className="auth-form__footer-text">
-            {'Don\'t have an account?'}
+            Don't have an account?
             <Link to="/register" className="auth-form__footer-link">REGISTER</Link>
           </span>
         </div>

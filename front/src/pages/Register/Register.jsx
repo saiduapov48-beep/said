@@ -13,6 +13,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [errors, setErrors] = useState({})
   const [globalError, setGlobalError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   function validate() {
     const errs = {}
@@ -25,7 +26,7 @@ export default function Register() {
     return errs
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setGlobalError('')
     const errs = validate()
@@ -33,7 +34,9 @@ export default function Register() {
       setErrors(errs)
       return
     }
-    const result = register(name, email, password)
+    setIsLoading(true)
+    const result = await register(name, email, password)
+    setIsLoading(false)
     if (result.success) {
       navigate('/profile')
     } else {
@@ -105,7 +108,9 @@ export default function Register() {
             />
             {errors.confirmPassword && <div className="auth-form__error">{errors.confirmPassword}</div>}
           </div>
-          <button type="submit" className="auth-form__submit">CREATE ACCOUNT</button>
+          <button type="submit" className="auth-form__submit" disabled={isLoading}>
+            {isLoading ? 'CREATING...' : 'CREATE ACCOUNT'}
+          </button>
         </div>
         <div className="auth-form__footer">
           <span className="auth-form__footer-text">

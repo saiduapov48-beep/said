@@ -7,7 +7,7 @@ import User from '../models/User.js'
 const router = express.Router()
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'
 
-// Middleware — проверка токена
+
 export function requireAuth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1]
   if (!token) return res.status(401).json({ message: 'No token' })
@@ -20,7 +20,6 @@ export function requireAuth(req, res, next) {
   }
 }
 
-// POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body
@@ -45,7 +44,7 @@ router.post('/register', async (req, res) => {
   }
 })
 
-// POST /api/auth/login
+
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body
@@ -70,7 +69,7 @@ router.post('/login', async (req, res) => {
   }
 })
 
-// GET /api/auth/me
+
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password')
@@ -81,7 +80,6 @@ router.get('/me', requireAuth, async (req, res) => {
   }
 })
 
-// PATCH /api/auth/me
 router.patch('/me', requireAuth, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
@@ -96,7 +94,6 @@ router.patch('/me', requireAuth, async (req, res) => {
   }
 })
 
-// POST /api/auth/favorites/:productId — toggle
 router.post('/favorites/:productId', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
