@@ -1,4 +1,4 @@
-    [README.md](https://github.com/user-attachments/files/25620704/README.md)
+
 <div align="center">
 
 # ◆ MAISON APPLE
