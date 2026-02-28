@@ -13,6 +13,9 @@ import Favorites from './pages/Favorites/Favorites.jsx'
 import Cart from './pages/Cart/Cart.jsx'
 import Checkout from './pages/Checkout/Checkout.jsx'
 import Admin from './pages/Admin/Admin.jsx'
+import StoreStaff from './pages/StoreStaff/StoreStaff.jsx'
+import WarehouseStaff from './pages/WarehouseStaff/WarehouseStaff.jsx'
+import CourierStaff from './pages/CourierStaff/CourierStaff.jsx'
 
 
 export default function App() {
@@ -20,13 +23,37 @@ export default function App() {
     <Routes>
       <Route element={<AdminLayout />}>
         <Route
-          path="/admin"
-          element={
-            <PrivateRoute>
-              <Admin />
-            </PrivateRoute>
-          }
-        />
+  path="/admin"
+  element={
+    <PrivateRoute roles={['admin']}>
+      <Admin />
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="/store-staff"
+  element={
+    <PrivateRoute roles={['store_staff']}>
+      <StoreStaff />
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="/warehouse-staff"
+  element={
+    <PrivateRoute roles={['warehouse_staff']}>
+      <WarehouseStaff />
+    </PrivateRoute>
+  }
+/>
+<Route
+  path="/courier"
+  element={
+    <PrivateRoute roles={['courier']}>
+      <CourierStaff />
+    </PrivateRoute>
+  }
+/>
       </Route>
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />

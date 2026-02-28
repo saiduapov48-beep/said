@@ -51,22 +51,22 @@ export function AuthProvider({ children }) {
   }
 
   async function login(email, password) {
-    try {
-      const res = await fetch(`${API}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-      const data = await res.json()
-      if (!res.ok) return { success: false, error: data.message }
+  try {
+    const res = await fetch(`${API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+    const data = await res.json()
+    if (!res.ok) return { success: false, error: data.message }
 
-      localStorage.setItem('maison_token', data.token)
-      setUser(data.user)
-      return { success: true }
-    } catch {
-      return { success: false, error: 'Server error' }
-    }
+    localStorage.setItem('maison_token', data.token)
+    setUser(data.user)
+    return { success: true, role: data.user.role }
+  } catch {
+    return { success: false, error: 'Server error' }
   }
+}
 
   function logout() {
     localStorage.removeItem('maison_token')

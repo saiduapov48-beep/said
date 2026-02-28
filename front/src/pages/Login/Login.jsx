@@ -15,11 +15,11 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin') {
-        navigate('/admin')
-      } else {
-        navigate('/profile')
-      }
+      if (user.role === 'admin') navigate('/admin')
+      else if (user.role === 'store_staff') navigate('/store-staff')
+      else if (user.role === 'warehouse_staff') navigate('/warehouse-staff')
+      else if (user.role === 'courier') navigate('/courier')
+      else navigate('/profile')
     }
   }, [user, navigate])
 
@@ -34,18 +34,11 @@ export default function Login() {
     e.preventDefault()
     setGlobalError('')
     const errs = validate()
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs)
-      return
-    }
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setIsLoading(true)
     const result = await login(email, password)
     setIsLoading(false)
-    if (result.success) {
-      // redirect is handled by useEffect watching user state
-    } else {
-      setGlobalError(result.error)
-    }
+    if (!result.success) setGlobalError(result.error)
   }
 
   return (

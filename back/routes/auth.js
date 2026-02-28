@@ -7,7 +7,6 @@ import User from '../models/User.js'
 const router = express.Router()
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'
 
-
 export function requireAuth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1]
   if (!token) return res.status(401).json({ message: 'No token' })
@@ -19,9 +18,24 @@ export function requireAuth(req, res, next) {
     res.status(401).json({ message: 'Invalid token' })
   }
 }
+
 export function requireAdmin(req, res, next) {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Admin only' })
   next()
+}
+
+export function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) return res.status(403).json({ message: 'Forbidden' })
+    next()
+  }
+}
+
+const ROLE_MAP = {
+  'admin@maison.com': 'admin',
+  'store@maison.com': 'store_staff',
+  'warehouse@maison.com': 'warehouse_staff',
+  'courier@maison.com': 'courier'
 }
 
 router.post('/register', async (req, res) => {
@@ -33,10 +47,10 @@ router.post('/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10)
     const user = await User.create({
       name, email, password: hash,
-      role: email === 'admin@maison.com' ? 'admin' : 'user'
+      role: ROLE_MAP[email] || 'user'
     })
 
-    logger.info(` New user registered: ${email}`)
+    logger.info(`New user registered: ${email} role: ${user.role}`)
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' })
     res.status(201).json({
       token,
@@ -48,7 +62,6 @@ router.post('/register', async (req, res) => {
   }
 })
 
-
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body
@@ -57,11 +70,11 @@ router.post('/login', async (req, res) => {
 
     const match = await bcrypt.compare(password, user.password)
     if (!match) {
-      logger.warn(` Failed login attempt: ${email}`)
+      logger.warn(`Failed login attempt: ${email}`)
       return res.status(400).json({ message: 'Invalid email or password' })
     }
 
-    logger.info(` User logged in: ${email}`)
+    logger.info(`User logged in: ${email} role: ${user.role}`)
     const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' })
     res.json({
       token,
@@ -73,13 +86,11 @@ router.post('/login', async (req, res) => {
   }
 })
 
-
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password')
     res.json(user)
   } catch (err) {
-    logger.error(`Get me error: ${err.message}`)
     res.status(500).json({ message: err.message })
   }
 })
@@ -87,13 +98,10 @@ router.get('/me', requireAuth, async (req, res) => {
 router.patch('/me', requireAuth, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: req.body },
-      { new: true }
+      req.user.id, { $set: req.body }, { new: true }
     ).select('-password')
     res.json(user)
   } catch (err) {
-    logger.error(`Update profile error: ${err.message}`)
     res.status(500).json({ message: err.message })
   }
 })
@@ -106,10 +114,8 @@ router.post('/favorites/:productId', requireAuth, async (req, res) => {
     if (idx === -1) user.favorites.push(pid)
     else user.favorites.splice(idx, 1)
     await user.save()
-    logger.info(` Favorites updated for user: ${req.user.id}`)
     res.json({ favorites: user.favorites })
   } catch (err) {
-    logger.error(`Favorites error: ${err.message}`)
     res.status(500).json({ message: err.message })
   }
 })
