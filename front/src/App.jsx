@@ -11,6 +11,7 @@ import About from './pages/About/About.jsx'
 import Favorites from './pages/Favorites/Favorites.jsx'
 import Cart from './pages/Cart/Cart.jsx'
 import Checkout from './pages/Checkout/Checkout.jsx'
+import Admin from './pages/Admin/Admin.jsx'
 
 
 export default function App() {
@@ -23,6 +24,15 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/about" element={<About />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route
+         path="/admin"
+          element={
+            <PrivateRoute>
+              <Admin />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/profile"
           element={

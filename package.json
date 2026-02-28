@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "2": "^3.0.0",
+    "@bonsai-ai/cli": "^0.4.1",
+    "is-object": "^1.0.2"
+  }
+}
