@@ -8,13 +8,15 @@ const router = express.Router()
 
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { items, total, shipping } = req.body
+    const { items, total, deliveryType, shipping, pickup } = req.body
 
     const order = await Order.create({
       user: req.user.id,
       items,
       total,
-      shipping
+      deliveryType,
+      shipping: deliveryType === 'shipping' ? shipping : null,
+      pickup: deliveryType === 'pickup' ? pickup : null
     })
 
     logger.info(`📦 New order created: ${order._id} by user: ${req.user.id}`)
@@ -24,7 +26,6 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 })
-
 
 router.get('/', requireAuth, async (req, res) => {
   try {

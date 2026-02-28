@@ -11,6 +11,7 @@ const orderSchema = new mongoose.Schema({
   items: [orderItemSchema],
   total: { type: Number, required: true },
   status: { type: String, default: 'pending', enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'] },
+  deliveryType: { type: String, default: 'shipping', enum: ['shipping', 'pickup'] },
   shipping: {
     name: String,
     email: String,
@@ -20,6 +21,14 @@ const orderSchema = new mongoose.Schema({
     zip: String,
     country: String,
     notes: String
+  },
+  pickup: {
+    storeId: Number,
+    storeName: String,
+    storeAddress: String,
+    city: String,
+    phone: String,
+    hours: String
   }
 }, { timestamps: true })
 

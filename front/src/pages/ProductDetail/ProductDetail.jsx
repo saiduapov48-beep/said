@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useFavorites } from '../../context/FavoritesContext.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
-import BookingModal from '../../components/BookingModal/BookingModal.jsx'
+import { useCart } from '../../context/CartContext.jsx'
 import './ProductDetail.css'
 
 const API = 'http://localhost:5000/api/products'
@@ -13,7 +13,7 @@ export default function ProductDetail() {
   const [notFound, setNotFound] = useState(false)
   const { toggleFavorite, isFavorite } = useFavorites()
   const { isAuthenticated } = useAuth()
-  const [modalOpen, setModalOpen] = useState(false)
+  const { addToCart } = useCart()
 
   useEffect(() => {
     fetch(`${API}/${id}`)
@@ -83,9 +83,9 @@ export default function ProductDetail() {
             <button
               className="detail__btn detail__btn--primary"
               disabled={!product.inStock}
-              onClick={() => setModalOpen(true)}
+              onClick={() => addToCart(product._id)}
             >
-              {product.inStock ? 'RESERVE NOW' : 'UNAVAILABLE'}
+              {product.inStock ? 'ADD TO CART' : 'UNAVAILABLE'}
             </button>
             {isAuthenticated && (
               <button
@@ -98,8 +98,6 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
-
-      <BookingModal product={product} isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   )
 }

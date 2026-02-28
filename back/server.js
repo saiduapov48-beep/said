@@ -8,7 +8,7 @@ import authRoutes from './routes/auth.js'
 import cartRoutes from './routes/cart.js'
 import logger from './logger.js'
 import orderRoutes from './routes/orders.js'
-
+import storeRoutes from './routes/stores.js'
 
 dotenv.config()
 
@@ -25,6 +25,7 @@ app.use('/api/products', productRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/cart', cartRoutes)
 app.use('/api/orders', orderRoutes)
+app.use('/api/stores', storeRoutes)
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

@@ -3,27 +3,27 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import './Profile.css'
 
+const API = 'http://localhost:5000/api'
+
 export default function Profile() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [bookings, setBookings] = useState([])
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const all = JSON.parse(localStorage.getItem('maison_bookings') || '[]')
-    const mine = all.filter((b) => b.email === user.email)
-    setBookings(mine)
-  }, [user.email])
+    const token = localStorage.getItem('maison_token')
+    fetch(`${API}/orders`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(data => { setOrders(data); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
 
   function handleLogout() {
     logout()
     navigate('/')
-  }
-
-  function deleteBooking(id) {
-    const all = JSON.parse(localStorage.getItem('maison_bookings') || '[]')
-    const updated = all.filter((b) => b.id !== id)
-    localStorage.setItem('maison_bookings', JSON.stringify(updated))
-    setBookings((prev) => prev.filter((b) => b.id !== id))
   }
 
   return (
@@ -58,23 +58,36 @@ export default function Profile() {
       </div>
 
       <div className="profile__section">
-        <h2 className="profile__section-title">MY RESERVATIONS ({bookings.length})</h2>
-        {bookings.length > 0 ? (
-          bookings.map((booking) => (
-            <div key={booking.id} className="profile__booking">
+        <h2 className="profile__section-title">MY ORDERS ({orders.length})</h2>
+        {loading ? (
+          <div className="profile__empty">LOADING...</div>
+        ) : orders.length > 0 ? (
+          orders.map(order => (
+            <div key={order._id} className="profile__booking">
               <div>
-                <div className="profile__booking-name">{booking.productName}</div>
+                <div className="profile__booking-name">
+                  ORDER #{order._id.slice(-6).toUpperCase()}
+                </div>
                 <div className="profile__booking-date">
-                  Reserved for {new Date(booking.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+                <div className="profile__booking-date">
+                  {order.deliveryType === 'pickup'
+                    ? `PICKUP: ${order.pickup?.storeName}, ${order.pickup?.storeAddress}`
+                    : `SHIPPING TO: ${order.shipping?.address}, ${order.shipping?.city}`
+                  }
+                </div>
+                <div className="profile__booking-date">
+                  {order.items.length} item(s) · ${order.total.toLocaleString()}
                 </div>
               </div>
-              <button className="profile__booking-delete" onClick={() => deleteBooking(booking.id)}>
-                CANCEL
-              </button>
+              <div className={`profile__status profile__status--${order.status}`}>
+                {order.status.toUpperCase()}
+              </div>
             </div>
           ))
         ) : (
-          <div className="profile__empty">NO RESERVATIONS YET</div>
+          <div className="profile__empty">NO ORDERS YET</div>
         )}
       </div>
 
