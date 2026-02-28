@@ -391,8 +391,6 @@ JWT_SECRET=your_secret_key
 - Checkout form with card formatting, validation, store selector
 - MongoDB Compass setup and data management
 - All product data (10 Apple products)
-
-### Built with Claude
 - Express server setup with ES modules and dotenv
 - MongoDB connection and all Mongoose models
 - Full REST API: products, auth, cart, orders, stores routes
