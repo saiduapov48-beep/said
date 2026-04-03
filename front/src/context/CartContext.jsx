@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext.jsx'
 
 const CartContext = createContext(null)
-const API = 'http://localhost:5000/api/cart'
+const API = `${import.meta.env.VITE_API_URL}/cart`
 
 export function useCart() {
   const ctx = useContext(CartContext)

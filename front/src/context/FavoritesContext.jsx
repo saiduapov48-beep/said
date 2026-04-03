@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
 
 const FavoritesContext = createContext(null)
-const API = 'http://localhost:5000/api/auth'
+const API = `${import.meta.env.VITE_API_URL}/cart`
 
 export function useFavorites() {
   const ctx = useContext(FavoritesContext)
