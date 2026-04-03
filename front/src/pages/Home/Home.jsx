@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import ProductCard from '../../components/ProductCard/ProductCard.jsx'
 import './Home.css'
 
-const API = 'http://localhost:5000/api/products'
+const API = `${import.meta.env.VITE_API_URL}/products`
 
 export default function Home() {
   const [products, setProducts] = useState([])
